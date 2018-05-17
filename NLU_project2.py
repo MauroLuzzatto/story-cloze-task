@@ -25,7 +25,7 @@ class RNN_class(object):
         self.number_of_epochs = rnn_settings['number_of_epochs']
         self.clip_gradient = rnn_settings['clip_gradient']
         self.training_mode = rnn_settings['Training_mode'] 
-        self.task = rnn_settings['Task']
+       
         reuseVar=False
        
         # initialize the placeholders
@@ -79,16 +79,12 @@ class RNN_class(object):
             logits = tf.add(tf.matmul(self.output, W),b) 
             logits = tf.reshape(logits, [self.batch_size, self.sentence_length, self.vocabulary_size])
             self.sentence_probability = tf.nn.softmax(logits)
-            # TODO: define distance Measure
             
+            # TODO: define distance Measure
             # TODO: calculate distance of given sentence and generated sentence
             # TODO: calculate the loss based on the distance of these sentences
             
-            # X_generated = generate_words_greedily(X, words_to_idx):
-            # distance_generated_stence = calculateDistance()
             
-            # distance_given_sentence = calculateDistance()
-            # loss = calculateSimilaritySentences()
             
             
         with tf.variable_scope('loss'):
@@ -130,7 +126,7 @@ class RNN_class(object):
         writer = tf.summary.FileWriter(pathToLog)
         writer.add_graph(session.graph)
         
-        batch_size = rnn_settings['batch_size']
+        batch_size = 6#rnn_settings['batch_size']
         self.num_batches = int(len(y)/batch_size)
         iters = 0
         costs = 0
@@ -138,16 +134,25 @@ class RNN_class(object):
         for batch_i in range(self.num_batches):
             # get batches
             start = batch_i * batch_size
-            end = min((batch_i + 1) * batch_size, len(y))
+            end = (batch_i + 1) * batch_size -2
+            
+            sentence_right = (batch_i + 1) * batch_size -1
+            sentence_wrong = (batch_i + 1) * batch_size
             
             feed_dict = {self.input_x: X[start:end],
                          self.input_y: y[start:end]}
                 
-            loss, acc, pred, summary, \
-            sentence_probability = session.run([self.loss, self.accuracy, self.predictions, 
-                                                self.merged, self.sentence_probability], 
-                                                feed_dict)
+            loss, acc, pred, sentence_probability = session.run([self.loss, self.accuracy, 
+                                                                self.predictions, self.sentence_probability], 
+                                                                feed_dict)
             
+            sentence_generated = self.generate_words_greedily(X = X[start:end], 
+                                                       words_to_idx = words_to_idx, 
+                                                       session = session)
+            
+            print('true', sentence_right)
+            print('false', sentence_wrong)
+            print('generated', sentence_generated)
             
             costs += loss
             iters += self.sentence_length
@@ -195,11 +200,20 @@ class RNN_class(object):
                 sentence_probability = session.run([self.train_op, self.loss, self.accuracy, 
                                                     self.predictions, self.merged, self.sentence_probability], 
                                                    feed_dict)
+                
+                
+                
+                # distance_generated_stence = calculateDistance()            
+                # distance_given_sentence = calculateDistance()
+                # loss = calculateSimilaritySentences()
+                
+                
                 costs += loss
                 iters += self.sentence_length
                 perplexity = np.exp(costs / iters)
 
-                print('Training: batch: ', batch_i , 'loss: ', np.sum(loss), 'accuracy: ', acc, 'perplexity: ', np.mean(perplexity))
+                print('Training: batch: ', batch_i, ' num Batches: ', num_batches)
+                print('loss: ', np.sum(loss), 'accuracy: ', acc, 'perplexity: ', np.mean(perplexity))
                 writer.add_summary(summary, epoch_i)
                 writer.flush()
         
@@ -231,33 +245,40 @@ class RNN_class(object):
 
 
     # TODO: remove session dependency
-    def generate_words_greedily(self, X, words_to_idx):
-            """predict the next word of sentence, given the previous words
-                load the trained model for this task 1.2"""
-            
-            #X_original_clean = self.cleanOutput(X, words_to_idx)
-            X_predicted = np.ones_like(X)
-            
-            for i in range(len(X)): #iterate over all scentences
-                #set eos pointer to eos index
-                p_eos = np.argwhere(np.array(X[i])==words_to_idx['<eos>'])[0][0] # 2 is eos but would be better using the dict
-                while True:
-                    #compute predictions
+    def generate_words_greedily(self, X, words_to_idx, session):
+        """predict the next word of sentence, given the previous words
+            load the trained model for this task 1.2"""
+        
+        #X_original_clean = self.cleanOutput(X, words_to_idx)
+        
+        for i in range(len(X)): #iterate over all scentences
+            # start dimension, predict word by word
+            dim = 1
+            while True:    
+                #compute predictions
+                feed_dict = {self.input_x: np.array(X[i]).reshape((1,self.sentence_length)),
+                             self.input_y: np.array(X[i]).reshape((1,self.sentence_length))} # input_y is not needed
                                         
-                    lastPredicted = self.predictions[i][0,p_eos-1]
-                    #X[i][p_eos]=lastPredicted
-                    X_predicted[i][p_eos] =lastPredicted
-                    
-                    p_eos += 1
-                    if lastPredicted == words_to_idx['<eos>'] or p_eos==self.sentence_length: 
-                        break
-            
-                for pad in range(len(X[i]), self.sentence_length):
+                prediction, sentence_probability = session.run([self.predictions, 
+                                                                self.sentence_probability], 
+                                                                feed_dict)
+                #print('prediction', prediction.shape)
+                lastpred = prediction[0][dim]
+                #print('lastpred', lastpred)
+                #print('dim', dim)
+                X[i][dim]=lastpred
+                dim += 1
+                
+                if lastpred == words_to_idx['<eos>'] or dim==29: 
+                    break
+                
+            if dim < 29:    
+                for pad in range(dim, self.sentence_length):
                     # add <pad> to the generated sentence
-                    X_predicted[i][pad] = words_to_idx['<pad>']
-            
-            
-            return X_predicted
+                    X[i][pad] = words_to_idx['<pad>']
+        
+        
+        return X
         
             #postprocess X
             #X_clean = self.cleanOutput(X, words_to_idx)
@@ -281,22 +302,23 @@ rnn_settings = {
     'learning_rate' : 0.001, # default
     'number_of_epochs' : 2,
     'clip_gradient' : 5.0,
-    'Training_mode': True,
-    'Task': 'B'
+    'Training_mode': False
     }
 
 training_mode = rnn_settings['Training_mode']
-task = rnn_settings['Task']
+
 
 pathMain = r'C:\Users\mauro\Desktop\CAS\_Natural_Language_Understanding\Project2_Story_Cloze_Test'
 pathData = os.path.join(pathMain, 'data')
 pathGraph = os.path.join(pathMain, 'graph')
 
 # set paths    
-pathToEmbedding = os.path.join(pathData,'wordembeddings-dim100.word2vec')
-   
-pathToData = r'C:\Users\mauro\Desktop\CAS\_Natural_Language_Understanding\Project2_Story_Cloze_Test'
-train, test = read_sentences(pathToData) 
+pathToEmbedding = os.path.join(r'C:\Users\mauro\Desktop\CAS\_Natural_Language_Understanding\Project\data','wordembeddings-dim100.word2vec')
+
+
+
+#pathToData = r'C:\Users\mauro\Desktop\CAS\_Natural_Language_Understanding\Project2_Story_Cloze_Test'
+train, valid = read_sentences(pathToData) 
 
 
 # TODO: preprocess the data such that all the sentences are equally long
@@ -308,19 +330,28 @@ train, test = read_sentences(pathToData)
 # TODO: evaluation set, two lists one with the 4 stories, one with the first true, second the folse sentence
 
 
+if training_mode:
+    #proprocess the train, validation and sentence continuation data
+    train_X, train_Y, words_to_idx, \
+    word_dict = preprocessing(raw_sentences = train, 
+                              mode = 'training', 
+                              words_to_idx = None, 
+                              word_dict = None)
 
-# proprocess the train, validation and sentence continuation data
-train_X, train_Y, words_to_idx, \
-word_dict = preprocessing(raw_sentences = train, 
-                          mode = 'training', 
-                          words_to_idx = None, 
-                          word_dict = None)
-  
-#    eval_X, eval_Y, words_to_idx, \
-#    word_dict = preprocessing(raw_sentences = test, 
-#                              mode = 'test', 
-#                              words_to_idx = words_to_idx, 
-#                              word_dict = word_dict)
+else:
+    #proprocess the train, validation and sentence continuation data
+    train_X, train_Y, words_to_idx, \
+    word_dict = preprocessing(raw_sentences = train, 
+                              mode = 'training', 
+                              words_to_idx = None, 
+                              word_dict = None)
+    
+    
+    eval_X, eval_Y, words_to_idx, \
+    word_dict = preprocessing(raw_sentences = valid, 
+                              mode = 'test', 
+                              words_to_idx = words_to_idx, 
+                              word_dict = word_dict)
 
   
 
@@ -332,26 +363,25 @@ with tf.Session() as session:
 
     if training_mode:    
         
-        if task =='B':
-            saver = tf.train.Saver()
-            # Initialize the variables 
-            session.run(tf.global_variables_initializer())
-            # load embeddings
-            embedding_matrix= tf.get_variable(name="embedding", \
-                              initializer = tf.random_uniform([rnn_settings['vocabulary_size'],
-                                                               rnn_settings['embedding_size']], -0.1, 0.1))
+        saver = tf.train.Saver()
+        # Initialize the variables 
+        session.run(tf.global_variables_initializer())
+        # load embeddings
+        embedding_matrix= tf.get_variable(name="embedding", \
+                          initializer = tf.random_uniform([rnn_settings['vocabulary_size'],
+                                                           rnn_settings['embedding_size']], -0.1, 0.1))
 
-            load_embedding(session = session, 
-                           vocab = words_to_idx, 
-                           emb = embedding_matrix, 
-                           path = pathToEmbedding,
-                           dim_embedding = rnn_settings['embedding_size'],
-                           vocab_size = rnn_settings['vocabulary_size'])
-            
-            # train the model
-            rnn_train.train_rnn(rnn_train, session, train_X, train_Y, rnn_settings, words_to_idx)
-            # export the trained meta-graph
-            saver.save(session, os.path.join(pathGraph, 'modelB.ckpt'))
+        load_embedding(session = session, 
+                       vocab = words_to_idx, 
+                       emb = embedding_matrix, 
+                       path = pathToEmbedding,
+                       dim_embedding = rnn_settings['embedding_size'],
+                       vocab_size = rnn_settings['vocabulary_size'])
+        
+        # train the model
+        rnn_train.train_rnn(rnn_train, session, train_X, train_Y, rnn_settings, words_to_idx)
+        # export the trained meta-graph
+        saver.save(session, os.path.join(pathGraph, 'modelB.ckpt'))
         
 
         
@@ -360,16 +390,10 @@ with tf.Session() as session:
         saver = tf.train.Saver()
         saver.restore(session, os.path.join(pathGraph, 'modelB.ckpt'))
         print('model restored')
+        task = 'B'
+        rnn_train.test_rnn(rnn_train, session, eval_X, eval_Y, task, rnn_settings, words_to_idx)
         
-        if task=='B': # eval task B               
-            # validate the model
-            rnn_train.test_rnn(rnn_train, session, eval_X, eval_Y, task, rnn_settings, words_to_idx)
         
-        if task=='1.2':
-            # predict the next word word of sentence
-            # generate scentences
-            rnn_train.generate_words_greedily(rnn_train, session, scent_cont_X, words_to_idx)
-            
         
 #if __name__ == '__main__':
 #    # reset the built graph
