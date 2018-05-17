@@ -288,14 +288,14 @@ rnn_settings = {
 training_mode = rnn_settings['Training_mode']
 task = rnn_settings['Task']
 
-pathMain = r'C:\Users\mauro\Desktop\CAS\_Natural_Language_Understanding\Project'
+pathMain = r'C:\Users\mauro\Desktop\CAS\_Natural_Language_Understanding\Project2_Story_Cloze_Test'
 pathData = os.path.join(pathMain, 'data')
 pathGraph = os.path.join(pathMain, 'graph')
 
 # set paths    
 pathToEmbedding = os.path.join(pathData,'wordembeddings-dim100.word2vec')
    
-pathToData = r'C:\Users\mauro\Desktop\CAS\_Natural_Language_Understanding\Project2_Story Cloze_Test'
+pathToData = r'C:\Users\mauro\Desktop\CAS\_Natural_Language_Understanding\Project2_Story_Cloze_Test'
 train, test = read_sentences(pathToData) 
 
 

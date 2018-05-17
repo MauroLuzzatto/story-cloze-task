@@ -10,9 +10,8 @@ import os
 import nltk
 from WordFrequency import WordFrequencyDist_D
 
-def read_sentences():
+def read_sentences(pathToData):
 
-    pathToData = r'C:\Users\mauro\Desktop\CAS\_Natural_Language_Understanding\Project2'
     
     sentences = pd.read_csv(os.path.join(pathToData, 'train_stories.csv'))
     validation =  pd.read_csv(os.path.join(pathToData, 'cloze_test_val__spring2016_cloze_test_ALL_val.csv'))
