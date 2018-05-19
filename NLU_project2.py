@@ -7,12 +7,16 @@ group: 12
 '''
 
 import tensorflow as tf
+import tensorflow_hub as hub
 import numpy as np
 import os
 
 from load_embedding import load_embedding
 from PreprocessingProject2 import preprocessing
 from read_sentences import read_sentences
+from sklearn.model_selection import train_test_split
+
+from sklearn.linear_model import LogisticRegression
 
 class RNN_class(object):
     """ main class that builds the RNN with an LSTM cell """
@@ -74,19 +78,11 @@ class RNN_class(object):
                                 initializer=tf.contrib.layers.xavier_initializer(), dtype=tf.float32)
          
             
-            
         with tf.variable_scope('logits'):
             logits = tf.add(tf.matmul(self.output, W),b) 
             logits = tf.reshape(logits, [self.batch_size, self.sentence_length, self.vocabulary_size])
             self.sentence_probability = tf.nn.softmax(logits)
-            
-            # TODO: define distance Measure
-            # TODO: calculate distance of given sentence and generated sentence
-            # TODO: calculate the loss based on the distance of these sentences
-            
-            
-            
-            
+                
         with tf.variable_scope('loss'):
             self.loss = tf.nn.sparse_softmax_cross_entropy_with_logits(logits = logits, labels = self.input_y)
             self.loss =  tf.reduce_mean(self.loss, 1)
@@ -108,21 +104,32 @@ class RNN_class(object):
                 self.train_op = optimizer.apply_gradients(zip(grads, tvars), global_step=tf.train.get_or_create_global_step())
                 
         
-            # Merge all the summaries and write them out to /tmp/mnist_logs (by default)
-            self.merged = tf.summary.merge_all()
+        # Merge all the summaries and write them out to /tmp/mnist_logs (by default)
+        self.merged = tf.summary.merge_all()
+        
+#        self.distanceSentence = self.calculateSentenceDistance(sentence = embedded_inputs)
+#        print(self.distanceSentence)     
+    
+          # TODO: calculate distance of given sentence and generated sentence
+          # TODO: calculate the loss based on the distance of these sentences
         
     
-    def measureSentenceSimilarity(self):
-        #TODO
-        #Input: two sentences
-        #Output: similaity of these sentences
-        #return SentenceSimilarity
-        pass
+#    def calculateSentenceDistance(self, sentence):
+#        embed = hub.Module("https://tfhub.dev/google/universal-sentence-encoder/1")
+#        # give words not numbers
+#        embeddings = embed(sentence)
+#        return embeddings
+#
+#    def createWordSentence(self, sentence, words_to_idx):
+#        keys=list(words_to_idx.keys())
+#        values=list(words_to_idx.values())
+          # Achtung sentence has several sententences
+#        return [[keys[values.index(idx)] for idx in sent] for sent in sentence] 
     
     def test_rnn(self, model, session, X, y, task, rnn_settings, words_to_idx):
         """Runs the model on the test data"""
                 
-        pathToLog = r'C:\Users\mauro\Desktop\CAS\_Natural_Language_Understanding\Project\logTest'
+        pathToLog = r'C:\Users\mauro\Desktop\CAS\_Natural_Language_Understanding\Project2_Story_Cloze_Test\log'
         writer = tf.summary.FileWriter(pathToLog)
         writer.add_graph(session.graph)
         
@@ -136,20 +143,23 @@ class RNN_class(object):
             start = batch_i * batch_size
             end = (batch_i + 1) * batch_size -2
             
-            sentence_right = (batch_i + 1) * batch_size -1
-            sentence_wrong = (batch_i + 1) * batch_size
-            
             feed_dict = {self.input_x: X[start:end],
                          self.input_y: y[start:end]}
                 
-            loss, acc, pred, sentence_probability = session.run([self.loss, self.accuracy, 
-                                                                self.predictions, self.sentence_probability], 
+            loss, acc, pred, sentence_probability, summary = session.run([self.loss, self.accuracy, 
+                                                                self.predictions, self.sentence_probability,
+                                                                self.merged], 
                                                                 feed_dict)
             
-            sentence_generated = self.generate_words_greedily(X = X[start:end], 
-                                                       words_to_idx = words_to_idx, 
-                                                       session = session)
+            sentence_right = X[(batch_i + 1) * batch_size -2]
+            sentence_wrong = X[(batch_i + 1) * batch_size-1]
             
+            sentence_generated = self.generate_words_greedily(X = X[start:end], 
+                                                              words_to_idx = words_to_idx, 
+                                                              session = session)
+            sentence_generated = self.createWordSentence(sentence_generated, words_to_idx)
+            
+            right, wrong, gen = [],[],[]
             print('true', sentence_right)
             print('false', sentence_wrong)
             print('generated', sentence_generated)
@@ -160,18 +170,16 @@ class RNN_class(object):
 
             print('Test set: loss: ', np.sum(loss), 'accuracy: ', acc,'perplexity: ', perplexity)
             writer.add_summary(summary, batch_i)
-
+            writer.flush()
         
-        # create final suubmission file for a specific task
-        writer.add_summary(summary)
-        writer.flush()
         writer.close()
+      
        
         
     def train_rnn(self, model, session, X, y, rnn_settings, words_to_idx):
         """Runs the model on the given data."""
         
-        pathToLog = r'C:\Users\mauro\Desktop\CAS\_Natural_Language_Understanding\Project\log'
+        pathToLog = r'C:\Users\mauro\Desktop\CAS\_Natural_Language_Understanding\Project2_Story_Cloze_Test\log'
         writer = tf.summary.FileWriter(pathToLog)
         writer.add_graph(session.graph)
         
@@ -315,45 +323,47 @@ pathGraph = os.path.join(pathMain, 'graph')
 # set paths    
 pathToEmbedding = os.path.join(r'C:\Users\mauro\Desktop\CAS\_Natural_Language_Understanding\Project\data','wordembeddings-dim100.word2vec')
 
-
-
+#"""
+#
 #pathToData = r'C:\Users\mauro\Desktop\CAS\_Natural_Language_Understanding\Project2_Story_Cloze_Test'
-train, valid = read_sentences(pathToData) 
+#train, valid = read_sentences(pathToData) 
+#
+## TODO: preprocess the data such that all the sentences are equally long
+## feed data to network: batch of 1 sentence, batch of 2 sentences, bacht of 3 sentences,...
+#
+## TODO: start simple, training set, just learn the sentences, 
+## create final sentence
+#
+## TODO: evaluation set, two lists one with the 4 stories, one with the first true, second the folse sentence
+#
+#
+#if training_mode:
+#    #proprocess the train, validation and sentence continuation data
+#    train_X, train_Y, words_to_idx, \
+#    word_dict = preprocessing(raw_sentences = train, 
+#                              mode = 'training', 
+#                              words_to_idx = None, 
+#                              word_dict = None)
+#
+#else:
+#    #proprocess the train, validation and sentence continuation data
+#    train_X, train_Y, words_to_idx, \
+#    word_dict = preprocessing(raw_sentences = train, 
+#                              mode = 'training', 
+#                              words_to_idx = None, 
+#                              word_dict = None)
+#    
+#    
+#    eval_X, eval_Y, words_to_idx, \
+#    word_dict = preprocessing(raw_sentences = valid, 
+#                              mode = 'test', 
+#                              words_to_idx = words_to_idx, 
+#                              word_dict = word_dict)
+#
+#"""  
 
 
-# TODO: preprocess the data such that all the sentences are equally long
-# feed data to network: batch of 1 sentence, batch of 2 sentences, bacht of 3 sentences,...
 
-# TODO: start simple, training set, just learn the sentences, 
-# create final sentence
-
-# TODO: evaluation set, two lists one with the 4 stories, one with the first true, second the folse sentence
-
-
-if training_mode:
-    #proprocess the train, validation and sentence continuation data
-    train_X, train_Y, words_to_idx, \
-    word_dict = preprocessing(raw_sentences = train, 
-                              mode = 'training', 
-                              words_to_idx = None, 
-                              word_dict = None)
-
-else:
-    #proprocess the train, validation and sentence continuation data
-    train_X, train_Y, words_to_idx, \
-    word_dict = preprocessing(raw_sentences = train, 
-                              mode = 'training', 
-                              words_to_idx = None, 
-                              word_dict = None)
-    
-    
-    eval_X, eval_Y, words_to_idx, \
-    word_dict = preprocessing(raw_sentences = valid, 
-                              mode = 'test', 
-                              words_to_idx = words_to_idx, 
-                              word_dict = word_dict)
-
-  
 
 # create rnn graph
 rnn_train = RNN_class(rnn_settings)
@@ -381,7 +391,7 @@ with tf.Session() as session:
         # train the model
         rnn_train.train_rnn(rnn_train, session, train_X, train_Y, rnn_settings, words_to_idx)
         # export the trained meta-graph
-        saver.save(session, os.path.join(pathGraph, 'modelB.ckpt'))
+        saver.save(session, os.path.join(pathGraph, 'model_P2.ckpt'))
         
 
         
@@ -394,11 +404,53 @@ with tf.Session() as session:
         rnn_train.test_rnn(rnn_train, session, eval_X, eval_Y, task, rnn_settings, words_to_idx)
         
         
+
+
+def LogisticRegressionWithSentenceLength(eval_X):
+    import nltk
+    eval_X = []
+    
+    for sent in valid:
+        eval_X.append(nltk.word_tokenize(sent.lower()))
+
+    batch_size = 6
+    X = np.zeros((int(len(eval_X)/batch_size)*2))
+    y = np.zeros((int(len(eval_X)/batch_size)*2))
+    count = 0
+    for batch_i in range(int(len(eval_X)/batch_size)):
+        y[count] = 1
+        X[count] = len(eval_X[(batch_i + 1) * batch_size -2]) # True
+        y[count + 1] = 0
+        X[count + 1] = len(eval_X[(batch_i + 1) * batch_size - 1]) # False
+        count += 2
+    
+    X = X.reshape(-1,1)
+    y = y.reshape(-1,1)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state = 4, shuffle = True)    
+    
+    for C in [0.001, 0.001,0.01, 0.1, 1, 10, 100,1000]:
+        logreg = LogisticRegression(C=C)
+        logreg.fit(X_train, y_train) 
+        ##        
+        ##Make predictions using the testing set
+        y_pred = logreg.predict(X_test)
+        score = logreg.score(X_test, y_test)
         
-#if __name__ == '__main__':
-#    # reset the built graph
-#    tf.reset_default_graph()
-#    # run main method
-#    main()            
+        print('score', score)
+
+
+
+
+
+
+LogisticRegressionWithSentenceLength(eval_X)
+
+
+     
+if __name__ == '__main__':
+    # reset the built graph
+    tf.reset_default_graph()
+    # run main method
+    main()            
 
 
