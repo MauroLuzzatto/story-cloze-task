@@ -21,7 +21,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.grid_search import GridSearchCV
 from sklearn.model_selection import cross_val_score    
 from sklearn.metrics import classification_report
-
+from sklearn.decomposition import PCA
 
 #from load_embedding import load_embedding
       
@@ -43,6 +43,8 @@ class RNN_class(object):
         self.drop_out_rate = rnn_settings['dropout_rate']
         self.batch_size = rnn_settings['batch_size']
         self.reuseVar=False
+        self.decay_step = rnn_settings['decay_step']
+        self.loss_type = rnn_settings['loss type']
        
         # initialize the placeholders
         self.input_x = tf.placeholder(shape=[None, self.number_of_sentences, self.embedding_size], dtype=tf.float32) # [batch_size, sentence_length]
@@ -51,9 +53,10 @@ class RNN_class(object):
 
     def build_graph(self, is_training):
         
+        # extract the correct batch_size
         batch_size = tf.shape(self.input_x)[0] # make the batch_size dynamic
                 
-        with tf.variable_scope('rnn_cell', reuse = self.reuseVar):
+        with tf.variable_scope('rnn_cell', reuse = tf.AUTO_REUSE):
             
             rnn_cells = []
             for i in range(self.num_layers):
@@ -72,7 +75,7 @@ class RNN_class(object):
 #                                           state_is_tuple=True, 
 #                                           activation=tf.nn.relu)
         
-        with tf.variable_scope('rnn_operations', reuse = self.reuseVar):
+        with tf.variable_scope('rnn_operations', reuse = tf.AUTO_REUSE):
             # rnn operation
             print('input x', self.input_x.get_shape())
 
@@ -84,7 +87,7 @@ class RNN_class(object):
         print('shape output ', self.output.get_shape())
         
         
-        with tf.variable_scope('predictions', reuse = self.reuseVar):
+        with tf.variable_scope('predictions', reuse = tf.AUTO_REUSE):
             # added activation function
             # self.predictions = tf.nn.relu(tf.add(tf.matmul(self.output, W),b))
             
@@ -105,7 +108,7 @@ class RNN_class(object):
             self.predictions = tf.nn.l2_normalize(self.predictions, axis = 2)
                         
                 
-        with tf.variable_scope('loss', reuse = self.reuseVar):
+        with tf.variable_scope('cosine_distance_loss', reuse = tf.AUTO_REUSE):
             self.input_y = tf.nn.l2_normalize(self.input_y, axis = 2)
             print('input y', self.input_y.get_shape())
             
@@ -113,6 +116,7 @@ class RNN_class(object):
             # 0: distance between vectors is small, more equal
             # 1: distance between vectros is large, unequal
             
+            #if self.loss_function =='cosine_distance':
             # only the last sentence is considred to calculate the loss
             self.cosine_distance = tf.losses.cosine_distance(labels=self.input_y[:,-1,:], 
                                                               predictions=self.predictions[:,-1,:], 
@@ -124,6 +128,14 @@ class RNN_class(object):
             self.cosine_similarity = 1- self.cosine_distance
             self.theta = tf.acos(self.cosine_similarity)
             self.total_loss =  tf.reduce_mean(self.cosine_distance)
+                
+            #elif self.loss_funciton == 'MSE:
+            self.mse = tf.losses.mean_squared_error(labels=self.input_y[:,-1,:], 
+                                                    predictions=self.predictions[:,-1,:], 
+                                                    reduction= 'none')
+            self.mse = tf.reduce_mean(self.mse)
+
+
             
             
         
@@ -131,26 +143,31 @@ class RNN_class(object):
 
         learning_rate = tf.train.exponential_decay(self.learning_rate,
                                                    global_step=global_step,
-                                                   decay_steps=5000,
+                                                   decay_steps=self.decay_step,
                                                    decay_rate=0.97,
                                                    staircase=False)
         
         
         if is_training:
-            with tf.variable_scope('training_operations', reuse = self.reuseVar):
+            with tf.variable_scope('training_operations', reuse = tf.AUTO_REUSE):
                 tvars = tf.trainable_variables()
-                grads, _ = tf.clip_by_global_norm(tf.gradients(self.cosine_distance, tvars), self.clip_gradient)
+                if self.loss_type == 'MSE':
+                    grads, _ = tf.clip_by_global_norm(tf.gradients(self.mse, tvars), self.clip_gradient)
+                elif self.loss_type == 'cosine_distance':
+                    grads, _ = tf.clip_by_global_norm(tf.gradients(self.cosine_distance, tvars), self.clip_gradient)
+                
                 optimizer = tf.train.AdamOptimizer(learning_rate = learning_rate)
                 self.train_op = optimizer.apply_gradients(zip(grads, tvars), global_step=global_step)
                 
         
         print('cosine_distance', self.cosine_distance.get_shape())
 
-        summary_learning_rate = tf.summary.scalar('learning_rate', self.learning_rate)
+        summary_learning_rate = tf.summary.scalar('learning_rate', learning_rate)
         summary_cos_dis = tf.summary.histogram('cosine_distance', self.cosine_distance)
         summary_cos_sim = tf.summary.histogram('cosine_similarity', self.cosine_similarity)
         summary_theta = tf.summary.histogram('theta', self.theta)
         summary_loss = tf.summary.scalar('loss', self.total_loss)
+        summary_mse = tf.summary.scalar('mse', self.mse)
                 
         
         # Merge all the summaries and write them out to /tmp/mnist_logs (by default)
@@ -158,7 +175,24 @@ class RNN_class(object):
                                         summary_cos_sim, 
                                         summary_theta, 
                                         summary_loss,
-                                        summary_learning_rate])
+                                        summary_learning_rate,
+                                        summary_mse])
+    
+    
+    def get_num_parameters(self):
+        """
+        :return: total number of trainable parameters.
+        """
+        num_parameters = 0
+        # Iterating over all variables
+        for variable in tf.trainable_variables():
+            local_parameters = 1
+            shape = variable.get_shape()  # getting shape of a variable
+            for i in shape:
+                local_parameters *= i.value  # multiplying dimension values
+            num_parameters += local_parameters
+
+        return num_parameters
         
     
     
@@ -175,15 +209,16 @@ class RNN_class(object):
             feed_dict = {self.input_x: X[start:end],
                          self.input_y: y[start:end]}
             
-            _, cosine_distance, pred, summary, loss_total = session.run([self.train_op, self.cosine_distance, 
+            _, cosine_distance, pred, summary, loss_total, mse = session.run([self.train_op, self.cosine_distance, 
                                                                          self.predictions, self.merged, 
-                                                                         self.total_loss], 
+                                                                         self.total_loss, self.mse], 
                                                                          feed_dict)
-            if batch_i%100 == 0:
+            if batch_i%1000 == 0:
                 print('Training: batch: ', batch_i, '/', num_batches)
+                print('global step', global_step)
                 print('cosine_distance: ', cosine_distance, cosine_distance.shape)
-                #print('cosine_similarity', 1-cosine_distance)
                 print('loss total', loss_total)
+                print('mse', mse)
                 writer.add_summary(summary, global_step)
                     
             global_step += 1
@@ -206,7 +241,6 @@ class RNN_class(object):
         
         print('Test error')
         print('cosine_distance: ', cosine_distance, cosine_distance.shape)
-        #print('cosine_similarity', 1-cosine_distance)
         print('Test loss total', loss_total)
         writer.add_summary(summary, global_step)
                     
@@ -263,7 +297,9 @@ class RNN_class(object):
         print('start classification')
         
         X = np.concatenate((X_true, X_false), axis = 0)
-        y = np.concatenate((np.ones((1871,1)), np.zeros((1871,1))),axis = 0)
+        y = np.concatenate((np.ones((X_true.shape[0],1)), 
+                            np.zeros((X_false.shape[0],1))),
+                            axis = 0)
 
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1, random_state = 4, shuffle = True)    
 
@@ -282,8 +318,9 @@ class RNN_class(object):
         scores = cross_val_score(gridsearch, X_test, y_test.ravel(), scoring='accuracy', cv=10)
         print('CV accuracy: %.3f +/- %.3f' % (np.mean(scores), np.std(scores))) 
         
-        y_true, y_pred = y_test, gridsearch.predict(X_test)
-        print(classification_report(y_true, y_pred))
+        y_pred = gridsearch.predict(X_test)
+        print(confusion_matrix(y_test, y_pred))
+        print(classification_report(y_test, y_pred))
         print()
                 
 
@@ -337,22 +374,35 @@ def generate_XY(stories):
     
     return X, y
 
+
+def perform_PCA(data, _n_components):
+    print('PCA')
+    samples, num_sentence, embedding = data.shape
+    pca = PCA(n_components= _n_components, copy = True, whiten = False)
+    data = pca.fit_transform(data.reshape(-1,512))
+    return data.reshape(-1,num_sentence,_n_components)
+    
+    
+
 #def main(): 
        
    
 # define the rnn with LSTM cell
 rnn_settings = {
     'number_of_sentences' : 5,        
-    'batch_size' : 8,  # change to 8 
-    'embedding_size' : 512, #100, 
+    'batch_size' : 16,  
+    'embedding_size' : 512, 
     'lstm_size' : 512,
-    'learning_rate' : 0.001, 
-    'number_of_epochs' : 2,
+    'learning_rate' : 0.003, # 0.001
+    'number_of_epochs' : 6,
     'clip_gradient' : 10.0,
-    'num_layers': 3,
-    'dropout_rate': 0,
-    'save settings name': 'LSTM3layer2epoch512batchsize8clip10',
-    'Training_mode': True
+    'num_layers': 2,
+    'dropout_rate': 0.0,
+    'decay_step': 500, # 10000
+    'save settings name': 'MSE_LSTM2layer6epochLSTM512_Emb512batchsize16clip10_dropout0lr0.003', # 'MSE_LSTM3layer7epochLSTM512_Emb512batchsize8clip10_dropout0lr0.001',
+    'Training_mode': True,
+    'pca': False,
+    'loss type': 'cosine_distance'
     }
 
 
@@ -360,7 +410,7 @@ rnn_settings = {
 pathToData = r'C:\Users\mauro\Desktop\CAS\_Natural_Language_Understanding\Project2_Story_Cloze_Test'
 pathToLog = r'C:\Users\mauro\Desktop\CAS\_Natural_Language_Understanding\Project2_Story_Cloze_Test\log'
 
-
+process_pca = False
 # embed stories
 save_valid_name='pre_calc_emb_LSTM'
 
@@ -376,7 +426,12 @@ except:
     np.save(pathToData+save_valid_name+'_train', train_stories)
 
 
+if rnn_settings['pca']:
+    train_stories = perform_PCA(train_stories, rnn_settings['embedding_size'])
+    valid_stories = perform_PCA(valid_stories, rnn_settings['embedding_size'])
+
 X, y = generate_XY(train_stories)
+
 
 X_train = X[0:80000,:,:]
 y_train = y[0:80000,:,:]
@@ -385,12 +440,14 @@ X_test = X[80000:,:,:]
 y_test = X[80000:,:,:]
         
 
-
 # create rnn graph
 RNN = RNN_class(rnn_settings)
 # build the graph of the RNN
 RNN.build_graph(is_training = True)
+number_of_paramters = RNN.get_num_parameters()
 
+print('Number of Model Paramters:', number_of_paramters)
+print('Number of Model Paramters in Millions:', number_of_paramters/10**6)
 
 
 # Launch the graph
@@ -463,10 +520,38 @@ with tf.Session() as session:
         # check which examples are very wrong regarding cosine distance
         # add further features, theta, sentence embedding
         
+        def euclidean_distance(x,y):
+     
+            """ return euclidean distance between two lists """
+     
+            return np.sqrt(np.sum(np.power(x-y,2), axis = 1)).reshape(1871,1)
+     
+        def manhattan_distance(x,y):
+     
+            """ return manhattan distance between two lists """
+     
+            return np.sum(abs(x-y), axis = 1).reshape(1871,1)
+        
         
         """ additional features: best score = 0.6299 """
-        X_true = np.concatenate([valid_stories[:,4,:], cd_right, np.arccos(1- cd_right)], axis =1)
-        X_false = np.concatenate([valid_stories[:,5,:], cd_wrong, np.arccos(1- cd_wrong)], axis =1)
+        X_true = np.concatenate([valid_stories[:,4,:], 
+                                 cd_right, 
+                                 np.arccos(1- cd_right), 
+                                 np.mean(abs(sentence_prediction[:,-1,:]- valid_stories[:,4,:]),axis = 1).reshape(1871,-1),
+                                 np.sum(abs(sentence_prediction[:,-1,:]- valid_stories[:,4,:]),axis = 1).reshape(1871,-1),
+                                 np.var(sentence_prediction[:,-1,:]- valid_stories[:,4,:], axis = 1).reshape(1871,-1),
+                                 euclidean_distance(sentence_prediction[:,-1,:],valid_stories[:,4,:]),
+                                 manhattan_distance(sentence_prediction[:,-1,:],valid_stories[:,4,:])], axis =1)
+        
+        
+        X_false = np.concatenate([valid_stories[:,5,:], 
+                                  cd_wrong, 
+                                  np.arccos(1- cd_wrong), 
+                                  np.mean(abs(sentence_prediction[:,-1,:]- valid_stories[:,5,:]),axis = 1).reshape(1871,-1),
+                                  np.sum(abs(sentence_prediction[:,-1,:]- valid_stories[:,5,:]),axis = 1).reshape(1871,-1),
+                                  np.var(sentence_prediction[:,-1,:]- valid_stories[:,5,:], axis = 1).reshape(1871,-1),
+                                  euclidean_distance(sentence_prediction[:,-1,:],valid_stories[:,5,:]),
+                                  manhattan_distance(sentence_prediction[:,-1,:],valid_stories[:,5,:])], axis =1)
         
         
         """ Baseline model: best score = 0.626 """
@@ -475,7 +560,7 @@ with tf.Session() as session:
         
         
         RNN.classification(X_true, X_false)
-            
+                
         
 #
 #if __name__ == "__main__":
