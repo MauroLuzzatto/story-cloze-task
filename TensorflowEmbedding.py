@@ -22,14 +22,33 @@ from sklearn.model_selection import cross_val_score
 
 from sklearn.metrics import classification_report
 # Reduce logging output.
-tf.logging.set_verbosity(tf.logging.ERROR)
+# tf.logging.set_verbosity(tf.logging.ERROR)
+import nltk
+nltk.download('vader_lexicon')
 
-method = 'scipy'
-crossValidation = False
-withContext = False
+from nltk.sentiment.vader import SentimentIntensityAnalyzer
+
 
 pathToData = r'C:\Users\mauro\Desktop\CAS\_Natural_Language_Understanding\Project2_Story_Cloze_Test'
 train, valid = read_sentences(pathToData) 
+
+
+sentences = valid
+sid = SentimentIntensityAnalyzer()
+for sentence in sentences:
+     print(sentence)
+     ss = sid.polarity_scores(sentence)
+     for k in sorted(ss):
+         print('{0}: {1}, '.format(k, ss[k]), end='')
+     print()
+
+
+
+method = 'scipy'
+crossValidation = True
+withContext = False
+
+
 
 batch_size = 6
 y = np.ones((int(len(valid)/batch_size)*2)) * 5
@@ -40,7 +59,6 @@ count = 0
 
 
 for batch_i in range(int(len(valid)/batch_size)):
-    
     right_sentence.append(valid[(batch_i + 1) * batch_size -2]) # True
     wrong_sentence.append(valid[(batch_i + 1) * batch_size - 1]) # False
     
@@ -50,56 +68,49 @@ for batch_i in range(int(len(valid)/batch_size)):
     context_sentence.append(valid[start+2]) 
     context_sentence.append(valid[start+3])
     
-#    y_ANN[count] = 1
-#    y_ANN[count + 1] = 0
-#    count += 2
-#    X_ANN.append(valid[(batch_i + 1) * batch_size -2]) # True
-#    X_ANN.append(valid[(batch_i + 1) * batch_size - 1]) # False
-#    
 
-
+print('load embedding')
 
 # Import the Universal Sentence Encoder's TF Hub module
 embed = hub.Module('https://tfhub.dev/google/universal-sentence-encoder/1')
 
-# Compute a representation for each message, showing various lengths supported.
-#messages = X_list
+with tf.Session() as session:
+  session.run([tf.global_variables_initializer(), tf.tables_initializer()])
+  right_emb = session.run(embed(right_sentence))
+  wrong_emb = session.run(embed(wrong_sentence))
+  context_emb = session.run(embed(context_sentence))
 
 
 
-#with tf.Session() as session:
-#  session.run([tf.global_variables_initializer(), tf.tables_initializer()])
-#  
-#  right_emb = session.run(embed(right_sentence))
-#  wrong_emb = session.run(embed(wrong_sentence))
-#  context_emb = session.run(embed(context_sentence))
-#
-#
-#
-
-
-X_true = np.concatenate((np.array(right_emb).reshape(-1,512), 
-                         np.array(right_emb).reshape(-1,512),
-                         np.array(right_emb).reshape(-1,512),
-                         np.array(right_emb).reshape(-1,512)), axis = 1)
-
-X_false = np.concatenate((np.array(wrong_emb).reshape(-1,512),
-                          np.array(wrong_emb).reshape(-1,512),
-                          np.array(wrong_emb).reshape(-1,512),
-                          np.array(wrong_emb).reshape(-1,512)), axis = 1)
-
-context_emb = context_emb.reshape(1871,-1)
 
 if withContext:
+    X_true = np.concatenate((np.array(right_emb).reshape(-1,512), 
+                             np.array(right_emb).reshape(-1,512),
+                             np.array(right_emb).reshape(-1,512),
+                             np.array(right_emb).reshape(-1,512)), axis = 1)
+
+    X_false = np.concatenate((np.array(wrong_emb).reshape(-1,512),
+                              np.array(wrong_emb).reshape(-1,512),
+                              np.array(wrong_emb).reshape(-1,512),
+                              np.array(wrong_emb).reshape(-1,512)), axis = 1)
+    
+    context_emb = context_emb.reshape(1871,-1)
     X = np.concatenate((X_true - context_emb, X_false- context_emb), axis = 0)
+
+    
 else:
+    
+    X_true = np.array(right_emb).reshape(-1,512)                       
+    X_false = np.array(wrong_emb).reshape(-1,512)
     X = np.concatenate((X_true, X_false), axis = 0)
+
+
 y = np.concatenate((np.ones((1871,1)), np.zeros((1871,1))),axis = 0)
 
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state = 4, shuffle = True)    
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1, random_state = 4, shuffle = True)    
 
 for C in [0.01, 0.1, 1, 10]:
-    logreg = LogisticRegression(C=C, penalty = 'l2', fit_intercept = True)
+    logreg = LogisticRegression(C=C, penalty = 'l2', fit_intercept = True, random_state = 4)
     logreg.fit(X_train, y_train) 
     y_pred = logreg.predict(X_test)
     score = logreg.score(X_test, y_test)
@@ -127,7 +138,7 @@ if crossValidation:
     
 
 
-
+print('baseline finished')
 
 
 #for _c in [0.001, 0.001,0.01, 0.1, 1, 10, 100,1000]:
