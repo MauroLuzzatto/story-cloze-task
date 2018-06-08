@@ -92,7 +92,7 @@ def create_features_word_embeddings_word2vec(stories_text, path_to_model):
         print('pretrained word embedding loaded')
     except:
         #calculate embedding
-        os.system('word2vecExample.py')
+        os.system('word2vec.py')
     
     def calc_avg_word_emb(stories_text, sentences):
         """
