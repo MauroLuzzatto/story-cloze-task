@@ -7,6 +7,6 @@
 /files
 /*.csv
 /__pycache__
-/*.npy
+*.npy
 /submission_group_13
 /*zip
