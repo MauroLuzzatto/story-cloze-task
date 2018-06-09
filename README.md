@@ -6,8 +6,8 @@ cloze task. This task was developed to measure advanced commonsense understandin
 day written stories [1]. To solve the task, one has to determine the correct ending sentence out of two
 available options, given the four initial context sentences of the story. 
 
-Two training sets were provided; one consisted of the context sentences with the correct ending only (train; train_stories.csv)
-and the second included also an additional incorrect ending (validation 1; cloze_test_spring2016-
+Two training sets were provided; one consisted of the context sentences with the correct ending only (train: train_stories.csv)
+and the second included also an additional incorrect ending (validation 1: cloze_test_spring2016-
 test.csv). Further, an evaluation set (validation 2: cloze_test_val__spring2016_cloze_test_ALL_val.csv) with
 context sentences and labeled endings was provided to determine the accuracy of the classifier.
 Finally, a test set (test: test_nlu18_utf-8.csv) was provided to participate in the competition by classifying
