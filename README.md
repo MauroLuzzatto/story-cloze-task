@@ -1,5 +1,5 @@
 
-# README Story Clozed Task
+# README: Story Clozed Task
 
 The target of this natural language understanding project was to successfully accomplish the story
 cloze task. This task was developed to measure advanced commonsense understanding within every-
@@ -19,14 +19,13 @@ is to extract semantic information from the story context and use it to determin
 
 [1] Nasrin Mostafazadeh et al. A corpus and cloze evaluation for deeper understanding commonsense
 stories. 2016.
+
 [2] Nasrin Mostafazadeh et al. Lsdsem 2017 shared task: The story cloze test. 2017.
 
 
 ## Setup
-1. Install dependencies by running (with `sudo` appended if necessary)
-```
-python3 setup.py install
-```
+1. Install dependencies by running: `python3 setup.py install`
+
 2. Run `word2vec.py` to create the word emebeddings. They will be saved and reloaded for further task. The code is taken from: https://github.com/tensorflow/tensorflow/blob/r1.8/tensorflow/examples/tutorials/word2vec/word2vec_basic.py
 
 3. Run `main_story_clozed_task.py` with the training_mode rnn option set to true. The first run will take a couple minutes because multiple embeddings will have to be loaded and calculated.
