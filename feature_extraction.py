@@ -197,23 +197,23 @@ def createFeatures(mode, stories, session, pathToData, pathToModel, RNN, fileNam
     
     # concatenate all the features for the classification task        
     X_1 = np.concatenate([
-                         X_1_word_embedding,
-                         sentence_1_embedding, 
-                         #cosine_distance_1,  
-                         (sentence_predicted_embedding- sentence_1_embedding).reshape(num_samples,-1),
-                         #np.var(sentence_predicted_embedding- sentence_1_embedding, axis = 1).reshape(num_samples,1),
-                         #euclidean_distance(sentence_predicted_embedding, sentence_1_embedding),
-                         #manhattan_distance(sentence_predicted_embedding, sentence_1_embedding)
+                         sentence_1_embedding, #A1
+                         X_1_word_embedding, #B1
+                         np.var(sentence_predicted_embedding- sentence_1_embedding, axis = 1).reshape(num_samples,1), #C1
+                         (sentence_predicted_embedding- sentence_1_embedding).reshape(num_samples,-1), #C2
+                         manhattan_distance(sentence_predicted_embedding, sentence_1_embedding), #C3 
+                         euclidean_distance(sentence_predicted_embedding, sentence_1_embedding), # C4
+                         cosine_distance_1
                          ], axis =1)
     
     X_2 = np.concatenate([
+                          sentence_2_embedding,
                           X_2_word_embedding,
-                          sentence_2_embedding, 
-                          #cosine_distance_2, 
+                          np.var(sentence_predicted_embedding- sentence_2_embedding, axis = 1).reshape(num_samples,1),
                           (sentence_predicted_embedding- sentence_2_embedding).reshape(num_samples,-1),
-                          #np.var(sentence_predicted_embedding- sentence_2_embedding, axis = 1).reshape(num_samples,1),
-                          #euclidean_distance(sentence_predicted_embedding, sentence_2_embedding),
-                          #manhattan_distance(sentence_predicted_embedding, sentence_2_embedding)
+                          manhattan_distance(sentence_predicted_embedding, sentence_2_embedding),
+                          euclidean_distance(sentence_predicted_embedding, sentence_2_embedding),
+                          cosine_distance_2 
                           ], axis =1)
 
     return X_1, X_2
@@ -221,10 +221,10 @@ def createFeatures(mode, stories, session, pathToData, pathToModel, RNN, fileNam
 
 def PCA_on_features(X1, X2, n_comp, pca_model):
     #perform PCA on features before the classification
-    print('shape X1 ', np.shape(X1))
+    #print('shape X1 ', np.shape(X1))
     lenX1 = len(X1)
     Xconcat = np.concatenate((X1,X2), axis = 0)
-    print('shape concat ', np.shape(Xconcat))
+    #print('shape concat ', np.shape(Xconcat))
     if not(pca_model):
         #perform pca
         pca_model = PCA(n_components= n_comp, copy = True, whiten = False)
@@ -236,10 +236,11 @@ def PCA_on_features(X1, X2, n_comp, pca_model):
     X1 = Xconcat[:lenX1]
     X2 = Xconcat[lenX1:2*lenX1]
     
-    print('shape X1 after ', np.shape(X1))
-    print('shape X2 after ', np.shape(X2))
+    #print('shape X1 after ', np.shape(X1))
+    #print('shape X2 after ', np.shape(X2))
     
     return X1, X2, pca_model
+
 
 def read_sentences_valid(pathToData, fileName):
     

@@ -17,7 +17,7 @@ from recurrent_neural_network import RNN_class
 from feature_extraction import PCA_on_features
       
 
-def main(baselineModel, rnn_settings, pca_settings): 
+def main(baseline, rnn_settings, pca_settings, fileName): 
         
     # set paths
     pathToModel = os.path.dirname(os.path.realpath(sys.argv[0]))
@@ -28,11 +28,8 @@ def main(baselineModel, rnn_settings, pca_settings):
     # embed stories
     save_valid_name='pre_calc_emb_LSTM'
         
-    # set the data file names
-    fileName = {'train': 'train_stories.csv', 
-                'test': 'test_nlu18_utf-8.csv',
-                'valid': 'cloze_test_val__spring2016_cloze_test_ALL_val.csv', 
-                'valid_2': 'cloze_test_spring2016-test.csv'}
+   
+     
     
     # load embeddings
     try:
@@ -115,7 +112,7 @@ def main(baselineModel, rnn_settings, pca_settings):
             saver.restore(session, os.path.join(pathToGraph, rnn_settings['save settings name'] + '.ckpt'))
             print('model restored!')
             
-            if baselineModel:
+            if baseline:
                 X_true = valid_stories[:,4,:]
                 X_false = valid_stories[:,5,:]
                 
@@ -171,7 +168,6 @@ if __name__ == "__main__":
     tf.reset_default_graph()
     tf.logging.set_verbosity(tf.logging.ERROR)
     
-    
     baseline = False
        
     # define the rnn with LSTM cell
@@ -193,7 +189,14 @@ if __name__ == "__main__":
     
     pca_settings = {'enable_pca': False,
                     'num_components': 512}
+    
+    # set the data file names
+    fileName = {'train':  'train_stories.csv', 
+                'test':   'test_nlu18_utf-8.csv',
+                'valid':   'cloze_test_val__spring2016_cloze_test_ALL_val.csv', 
+                'valid_2': 'cloze_test_spring2016-test.csv'}
+    
     # run main method
-    main(baseline, rnn_settings, pca_settings)              
+    main(baseline, rnn_settings, pca_settings, fileName)              
         
     

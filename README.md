@@ -1,10 +1,28 @@
 
-# README Story Clozed Task, Group 13
-# Thomas Brunschwiler, Dario Kneubühler, Mauro Luzzatto
+# README Story Clozed Task
+
+The target of this natural language understanding project was to successfully accomplish the story
+cloze task. This task was developed to measure advanced commonsense understanding within every-
+day written stories [1]. To solve the task, one has to determine the correct ending sentence out of two
+available options, given the four initial context sentences of the story. 
+
+Two training sets were provided; one consisted of the context sentences with the correct ending only (train; train_stories.csv)
+and the second included also an additional incorrect ending (validation 1; cloze_test_spring2016-
+test.csv). Further, an evaluation set (validation 2: cloze_test_val__spring2016_cloze_test_ALL_val.csv) with
+context sentences and labeled endings was provided to determine the accuracy of the classifier.
+Finally, a test set (test: test_nlu18_utf-8.csv) was provided to participate in the competition by classifying
+unlabeled sentences.
+In the LSDSem 2017 competition, in which different teams competed to solve the story cloze task,
+validation accuracies between 0.595 and 0.752 were reached [2]. The major difficulty of this task
+is to extract semantic information from the story context and use it to determine the correct ending.
+
+
+[1] Nasrin Mostafazadeh et al. A corpus and cloze evaluation for deeper understanding commonsense
+stories. 2016.
+[2] Nasrin Mostafazadeh et al. Lsdsem 2017 shared task: The story cloze test. 2017.
+
 
 ## Setup
-
-
 1. Install dependencies by running (with `sudo` appended if necessary)
 ```
 python3 setup.py install

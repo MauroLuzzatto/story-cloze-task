@@ -284,10 +284,15 @@ class RNN_class(object):
         print(confusion_matrix(self.y_test, y_pred))
         print(classification_report(self.y_test, y_pred))
         
-        self.prediction_classification = self.Prediction(self.gridsearch, X_valid_true, X_valid_false)
+        #old validation set
+        prediction_classification_valid_old = self.Prediction(self.gridsearch, X_true, X_false)
+        score_valid_old = float(prediction_classification_valid_old.count(1))/len(prediction_classification_valid_old)
+        print('Validation score (first validation dataset), stories joint and classified', score_valid_old)
         
+        #new validation set
+        self.prediction_classification = self.Prediction(self.gridsearch, X_valid_true, X_valid_false)
         score = float(self.prediction_classification.count(1))/len(self.prediction_classification)
-        print('Validation score (new validation dataset), stories joint and classified', score)
+        print('(final) Validation score (second validation dataset), stories joint and classified', score)
         
 
     def createSubmissionFile(self, X_test_sent_1, X_test_sent_2):

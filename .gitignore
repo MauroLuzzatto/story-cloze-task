@@ -1,8 +1,12 @@
 # folders to ignore
-/data
+!/data
+/data/*.npy
 /graph
 /log
 /_archive
 /files
 /*.csv
 /__pycache__
+/*npy
+/submission_group_13
+/*zip
