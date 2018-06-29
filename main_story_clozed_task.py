@@ -27,10 +27,7 @@ def main(baseline, rnn_settings, pca_settings, fileName):
     
     # embed stories
     save_valid_name='pre_calc_emb_LSTM'
-        
-   
-     
-    
+            
     # load embeddings
     try:
         valid_stories = np.load(os.path.join(pathToData, save_valid_name+'_valid.npy'))
@@ -175,16 +172,17 @@ if __name__ == "__main__":
         'number_of_sentences' : 5,        
         'batch_size' : 32,  
         'embedding_size' : 512, 
-        'lstm_size' : 64, #64,
+        'lstm_size' : 128, #64,
         'learning_rate' : 0.0001, # 0.001
         'number_of_epochs' : 80, #, 8,
         'clip_gradient' : 10.0,
-        'num_layers': 1,
+        'num_layers': 3,
         'dropout_rate': 0.0,
         'decay_step': 40000,  # use less epochs, overfitting! (lstm 16 was better)
-        'save settings name': 'LSTM1layer80epochLSTM64_Emb512batchsize32clip10_dropout0lr0.001', # 'MSE_LSTM3layer7epochLSTM512_Emb512batchsize8clip10_dropout0lr0.001',
-        'Training_mode': False, 
-        'pca': False
+        'save settings name': 'LSTM3layer80epochLSTM128_Emb512batchsize32clip10_dropout0lr0.001Bidirecitional_try_overfit', # 'MSE_LSTM3layer7epochLSTM512_Emb512batchsize8clip10_dropout0lr0.001',
+        'Training_mode': True, 
+        'pca': False,
+        'bidirectional_rnn' : True
         }
     
     pca_settings = {'enable_pca': False,

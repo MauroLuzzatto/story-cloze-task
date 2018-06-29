@@ -15,7 +15,6 @@ from sklearn.pipeline import Pipeline
 from sklearn.grid_search import GridSearchCV
 from sklearn.model_selection import cross_val_score    
 from sklearn.metrics import classification_report
-from sklearn.decomposition import PCA
 
 class RNN_class(object):
     """ main class that builds the RNN with an LSTM cell """
@@ -30,8 +29,9 @@ class RNN_class(object):
         self.num_layers = rnn_settings['num_layers']
         self.drop_out_rate = rnn_settings['dropout_rate']
         self.batch_size = rnn_settings['batch_size']
-        self.reuseVar=False
         self.decay_step = rnn_settings['decay_step']
+        self.bidirectional_rnn = rnn_settings['bidirectional_rnn']
+        self.leaky_relu_alpha = 0.3
        
         # initialize the placeholders
         self.input_x = tf.placeholder(shape=[None, self.number_of_sentences, self.embedding_size], dtype=tf.float32) # [batch_size, sentence_length]
@@ -52,19 +52,32 @@ class RNN_class(object):
             if self.num_layers > 1:
                 # Stack multiple cells.
                 lstm = tf.nn.rnn_cell.MultiRNNCell(cells=rnn_cells, state_is_tuple=True)
+                lstm_bw = tf.nn.rnn_cell.MultiRNNCell(cells=rnn_cells, state_is_tuple=True)
             else:
                 
-                lstm = tf.contrib.rnn.BasicLSTMCell(num_units = self.lstm_size)
-                    
+                lstm = rnn_cells[0]
+                lstm_bw = rnn_cells[0]
+                
         with tf.variable_scope('rnn_operations', reuse = tf.AUTO_REUSE):
             # rnn operation
+            
+            if not self.bidirectional_rnn:
 
-            self.output, state = tf.nn.dynamic_rnn(cell = lstm, 
+                self.output, state = tf.nn.dynamic_rnn(cell = lstm, 
                                                   inputs = self.input_x,
                                                   dtype = tf.float32)
             
-            self.output = tf.reshape(self.output, [-1, self.lstm_size])
-        
+                self.output = tf.reshape(self.output, [-1, self.lstm_size])
+            
+            
+            else:            
+                (output_fw, output_bw), last_state = tf.nn.bidirectional_dynamic_rnn(cell_fw = lstm, 
+                                                                                     cell_bw = lstm_bw, 
+                                                                                     inputs=self.input_x,
+                                                                                     dtype=tf.float32)
+                output = tf.add(output_fw, output_bw)
+                self.output = tf.reshape(output, [-1, self.lstm_size])
+
         
         with tf.variable_scope('predictions', reuse = tf.AUTO_REUSE):
             dropout_layer = tf.layers.dropout(inputs=self.output, 
@@ -72,10 +85,11 @@ class RNN_class(object):
                                               training=is_training)
             
             predictions = tf.layers.dense(inputs=dropout_layer, 
-                                      units=self.embedding_size,
-                                      use_bias = True,
-                                      kernel_initializer = tf.contrib.layers.xavier_initializer(),
-                                      bias_initializer = tf.contrib.layers.xavier_initializer())
+                                          units=self.embedding_size,
+                                          use_bias = True,
+                                          kernel_initializer = tf.contrib.layers.xavier_initializer(),
+                                          bias_initializer = tf.contrib.layers.xavier_initializer(),
+                                          activation=lambda x: tf.nn.leaky_relu(x, alpha=self.leaky_relu_alpha))
                         
             self.predictions = tf.reshape(predictions, [batch_size, self.number_of_sentences, self.embedding_size])
             self.predictions_normalized = tf.nn.l2_normalize(self.predictions, axis = 2)
@@ -177,8 +191,8 @@ class RNN_class(object):
                                                                          feed_dict)
             if batch_i%1000 == 0:
                 print('Training: batch: ', batch_i, '/', num_batches)
-                print('global step', global_step, '/', num_batches * self.number_of_epochs)
-                print('loss total', loss_total)
+                print('global step: ', global_step, '/', num_batches * self.number_of_epochs)
+                print('loss total: ', loss_total)
                 writer.add_summary(summary, global_step)
             global_step += 1
         
@@ -313,7 +327,6 @@ class RNN_class(object):
         
         final_prediction = self.Prediction(clf, X_test_sent_1, X_test_sent_2)
         
-            
         with open(fileName, 'w') as file_handler:
             for item in final_prediction:
                     file_handler.write("{}\n".format(item))
@@ -322,7 +335,6 @@ class RNN_class(object):
     
     def Prediction(self, clf, X_test_sent_1, X_test_sent_2):
         
-#        print('classes', clf.classes_)
         # predict the probability of each sentence being true
         y_pred_1 = clf.predict_proba(X_test_sent_1)
         y_pred_2 = clf.predict_proba(X_test_sent_2)
