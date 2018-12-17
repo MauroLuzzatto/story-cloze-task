@@ -35,6 +35,6 @@ stories. 2016.
 
 ## Authors
 
-* **Mauro Luzzatto** - [Darkneu](https://github.com/MauroLuzzatto)
+* **Mauro Luzzatto** - [Maurol](https://github.com/MauroLuzzatto)
 * **Dario Kneubuehler** - [Darkneu](https://github.com/Darkneu)
 * **Thomas Brunschwiler**
