@@ -37,3 +37,8 @@ stories. 2016.
 4. Run 'main_story_clozed_task.py' with the training_mode rnn option set to false. The model will predict on the validation set and display the validation accuracy. A output file containing predictions on the test set is saved in the current folder.
 
 
+## Authors
+
+* **Mauro Luzzatto** - [Maurol](https://github.com/MauroLuzzatto)
+* **Dario Kneubuehler** - [Darkneu](https://github.com/Darkneu)
+* **Thomas Brunschwiler**
