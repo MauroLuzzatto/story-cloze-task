@@ -1,8 +1,6 @@
 
 # The Story Clozed Task
 
-Date: 30.05.2018
-
 The target of this NLU project was to successfully accomplish the story
 cloze task. This task was developed to measure advanced commonsense understanding within every-
 day written stories [1]. To solve the task, one has to determine the correct ending sentence out of two
@@ -36,9 +34,9 @@ stories. 2016.
 
 4. Run 'main_story_clozed_task.py' with the training_mode rnn option set to false. The model will predict on the validation set and display the validation accuracy. A output file containing predictions on the test set is saved in the current folder.
 
-
 ## Authors
-
 * **Mauro Luzzatto** - [Maurol](https://github.com/MauroLuzzatto)
 * **Dario Kneubuehler** - [Darkneu](https://github.com/Darkneu)
 * **Thomas Brunschwiler**
+
+Date: 30.05.2018
