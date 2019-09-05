@@ -12,7 +12,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import confusion_matrix
 from sklearn.pipeline import Pipeline
-from sklearn.grid_search import GridSearchCV
+from sklearn.model_selection import GridSearchCV
 from sklearn.model_selection import cross_val_score    
 from sklearn.metrics import classification_report
 
@@ -80,6 +80,7 @@ class RNN_class(object):
 
         
         with tf.variable_scope('predictions', reuse = tf.AUTO_REUSE):
+            
             dropout_layer = tf.layers.dropout(inputs=self.output, 
                                               rate=self.drop_out_rate, 
                                               training=is_training)
@@ -153,13 +154,10 @@ class RNN_class(object):
 #        print('input x', self.input_x.get_shape())
 #        print('predictions', predictions.get_shape())
 
-
-
     
     def get_num_parameters(self):
-        """
-        return: total number of trainable parameters.
-        """
+        """ return: total number of trainable parameters."""
+        
         num_parameters = 0
         # Iterating over all variables
         for variable in tf.trainable_variables():
@@ -168,13 +166,12 @@ class RNN_class(object):
             for i in shape:
                 local_parameters *= i.value  # multiplying dimension values
             num_parameters += local_parameters
-
         return num_parameters
         
     
     def train(self, session, X, y, writer, global_step):
         """Runs the model on the given data."""
-    
+        
         num_batches = int(len(y)/self.batch_size)
         # iterate over all batches
         for batch_i in range(num_batches):
@@ -261,9 +258,11 @@ class RNN_class(object):
                 
     
     def classification(self, X_true, X_false, X_valid_true, X_valid_false):
-        # X_true and X_false are features corresponding to the two possible endings in the data set
-        # the names might be confunsing, but it emerged from the beginning of the project when we sorted the 
-        # sentences in a way such that the first sentence was always true and the second sentence always wrong
+        """
+        X_true and X_false are features corresponding to the two possible endings in the data set
+        the names might be confunsing, but it emerged from the beginning of the project when we sorted the 
+        sentences in a way such that the first sentence was always true and the second sentence always wrong
+        """
         
         self.X_train = np.concatenate((X_true, X_false), axis = 0)
         # class according to the order of the sentences
@@ -334,7 +333,6 @@ class RNN_class(object):
         
     
     def Prediction(self, clf, X_test_sent_1, X_test_sent_2):
-        
         # predict the probability of each sentence being true
         y_pred_1 = clf.predict_proba(X_test_sent_1)
         y_pred_2 = clf.predict_proba(X_test_sent_2)

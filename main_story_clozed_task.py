@@ -2,7 +2,16 @@
 """
 Created on Wed May 23 11:34:47 2018
 
-@author: thomas, mauro, dario
+@author: mauro, dario
+
+Description: 
+    
+The target of this NLU project was to successfully accomplish the story
+cloze task. This task was developed to measure advanced commonsense understanding within every-
+day written stories. To solve the task, one has to determine the correct ending sentence out of two
+available options, given the four initial context sentences of the story. 
+
+
 """
 
 import tensorflow as tf
@@ -17,7 +26,10 @@ from recurrent_neural_network import RNN_class
 from feature_extraction import PCA_on_features
       
 
-def main(baseline, rnn_settings, pca_settings, fileName): 
+def main(baseline, rnn_settings, fileName): 
+    """
+    main method to train the RNN and test it on the story clozed task
+    """
         
     # set paths
     pathToModel = os.path.dirname(os.path.realpath(sys.argv[0]))
@@ -42,6 +54,7 @@ def main(baseline, rnn_settings, pca_settings, fileName):
         test_stories = perform_sentence_embedding(pathToData = pathToData, 
                                                   embedding=True,
                                                   fileName = fileName)
+        
         np.save(os.path.join(pathToData, save_valid_name+'_valid'), valid_stories)
         np.save(os.path.join(pathToData, save_valid_name + '_valid_2'), valid_stories_2)
         np.save(os.path.join(pathToData, save_valid_name+'_train'), train_stories)
@@ -59,8 +72,8 @@ def main(baseline, rnn_settings, pca_settings, fileName):
     RNN = RNN_class(rnn_settings)
     # build the graph of the RNN
     RNN.build_graph(is_training = True)
-    number_of_paramters = RNN.get_num_parameters()
     
+    number_of_paramters = RNN.get_num_parameters()
     print('Number of Model Paramters:', number_of_paramters)
     print('Number of Model Paramters in Millions:', number_of_paramters/10**6)
     
@@ -144,17 +157,7 @@ def main(baseline, rnn_settings, pca_settings, fileName):
                                               RNN = RNN,
                                               fileName = fileName)
             
-            # perform principal component analysis on features
-            if pca_settings['enable_pca']:
-                n_comp=pca_settings['num_components']
-                X_true, X_false, pca_mod = PCA_on_features(X_true, X_false, n_comp, False)
-                X_valid_true, X_valid_false, _ = PCA_on_features(X_valid_true, X_valid_false, n_comp, pca_mod)
-                X_test_sent_1, X_test_sent_2, _ = PCA_on_features(X_test_sent_1, X_test_sent_2, n_comp, pca_mod)
-#                X_true, X_false, X_valid_true, X_valid_false, X_test_sent_1,
-#                X_test_sent_2 = PCA_on_features(X_true, X_false, X_valid_true,
-#                                                X_valid_false, X_test_sent_1,
-#                                                X_test_sent_2, n_comp)
-            
+                  
             RNN.classification(X_true, X_false, X_valid_true, X_valid_false)
         
             RNN.createSubmissionFile(X_test_sent_1, X_test_sent_2)
@@ -170,23 +173,21 @@ if __name__ == "__main__":
     # define the rnn with LSTM cell
     rnn_settings = {
         'number_of_sentences' : 5,        
-        'batch_size' : 32,  
+        'batch_size' : 16,  
         'embedding_size' : 512, 
         'lstm_size' : 128, #64,
-        'learning_rate' : 0.0001, # 0.001
+        'learning_rate' : 0.001, # 0.001
         'number_of_epochs' : 80, #, 8,
         'clip_gradient' : 10.0,
         'num_layers': 3,
-        'dropout_rate': 0.0,
-        'decay_step': 40000,  # use less epochs, overfitting! (lstm 16 was better)
-        'save settings name': 'LSTM3layer80epochLSTM128_Emb512batchsize32clip10_dropout0lr0.001Bidirecitional_try_overfit', # 'MSE_LSTM3layer7epochLSTM512_Emb512batchsize8clip10_dropout0lr0.001',
+        'dropout_rate': 0.3,
+        'decay_step': 4000,  
+        'save settings name': 'LSTM3layer80epochLSTM128_Emb512batchsize16clip10_dropout0lr0.001Bidirecitional_try_overfit', # 'MSE_LSTM3layer7epochLSTM512_Emb512batchsize8clip10_dropout0lr0.001',
         'Training_mode': True, 
         'pca': False,
         'bidirectional_rnn' : True
         }
     
-    pca_settings = {'enable_pca': False,
-                    'num_components': 512}
     
     # set the data file names
     fileName = {'train':  'train_stories.csv', 
@@ -195,6 +196,4 @@ if __name__ == "__main__":
                 'valid_2': 'cloze_test_spring2016-test.csv'}
     
     # run main method
-    main(baseline, rnn_settings, pca_settings, fileName)              
-        
-    
+    main(baseline, rnn_settings, fileName)              

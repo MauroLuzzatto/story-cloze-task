@@ -1,7 +1,7 @@
 
 # README: Story Clozed Task
 
-The target of this natural language understanding project was to successfully accomplish the story
+The target of this NLU project was to successfully accomplish the story
 cloze task. This task was developed to measure advanced commonsense understanding within every-
 day written stories [1]. To solve the task, one has to determine the correct ending sentence out of two
 available options, given the four initial context sentences of the story. 
@@ -23,7 +23,7 @@ stories. 2016.
 [2] Nasrin Mostafazadeh et al. Lsdsem 2017 shared task: The story cloze test. 2017.
 
 
-## Setup
+## Getting Started
 1. Install dependencies by running: `python3 setup.py install`
 
 2. Run `word2vec.py` to create the word emebeddings. They will be saved and reloaded for further task. The code is taken from: https://github.com/tensorflow/tensorflow/blob/r1.8/tensorflow/examples/tutorials/word2vec/word2vec_basic.py
