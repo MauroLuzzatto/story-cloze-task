@@ -1,5 +1,7 @@
 
-# README: Story Clozed Task
+# The Story Clozed Task
+
+Date: 30.05.2018
 
 The target of this NLU project was to successfully accomplish the story
 cloze task. This task was developed to measure advanced commonsense understanding within every-
@@ -21,6 +23,8 @@ is to extract semantic information from the story context and use it to determin
 stories. 2016.
 
 [2] Nasrin Mostafazadeh et al. Lsdsem 2017 shared task: The story cloze test. 2017.
+
+[3] [Story Cloze Test and ROCStories Corpora Description](http://cs.rochester.edu/nlp/rocstories/)
 
 
 ## Getting Started
