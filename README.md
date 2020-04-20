@@ -33,7 +33,7 @@ stories. 2016.
 
 [3] [Story Cloze Test and ROCStories Corpora Description](http://cs.rochester.edu/nlp/rocstories/)
 
-[4] [Final project report ](/Report/20180608 - Final Project Report.pdf)
+[4] [Final Project Report](/Report/20180608 - Final Project Report.pdf)
 
 
 ## Getting Started
