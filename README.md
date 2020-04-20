@@ -19,7 +19,7 @@ Training sets:
 Evaluation set:
 * an evaluation set [validation 2](/data/cloze_test_val__spring2016_cloze_test_ALL_val.csv) with context sentences and labeled endings to determine the accuracy of the classifier
 
-Test set:
+Test set
 * a test set [test](/data/test_nlu18_utf-8.csv) to participate in the competition by classifying unlabeled sentences
 
 
@@ -33,7 +33,7 @@ stories. 2016.
 
 [3] [Story Cloze Test and ROCStories Corpora Description](http://cs.rochester.edu/nlp/rocstories/)
 
-[4] [Final Project Report](/Report/20180608\ -\ Final\ Project\ Report.pdf)
+[4] [Final Project Report](/Report/20180608%20-%20Final%20Project Report.pdf/)
 
 
 ## Getting Started
