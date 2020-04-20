@@ -1,21 +1,30 @@
 
-# The Story Clozed Task
+# Solving the Story Clozed Task
+(Date: 30.05.2018)
 
-The target of this NLU project was to successfully accomplish the story
-cloze task. This task was developed to measure advanced commonsense understanding within every-
-day written stories [1]. To solve the task, one has to determine the correct ending sentence out of two
-available options, given the four initial context sentences of the story. 
+The target of this NLP project was to successfully solve the story cloze task. This task was developed to measure advanced commonsense understanding within everyday written stories [1]. To solve the task, one has to determine the correct ending sentence out of two available options, given the four initial context sentences of the story. 
 
-Two training sets were provided; one consisted of the context sentences with the correct ending only (train: train_stories.csv)
-and the second included also an additional incorrect ending (validation 1: cloze_test_spring2016-
-test.csv). Further, an evaluation set (validation 2: cloze_test_val__spring2016_cloze_test_ALL_val.csv) with
-context sentences and labeled endings was provided to determine the accuracy of the classifier.
-Finally, a test set (test: test_nlu18_utf-8.csv) was provided to participate in the competition by classifying
-unlabeled sentences.
-In the LSDSem 2017 competition, in which different teams competed to solve the story cloze task,
-validation accuracies between 0.595 and 0.752 were reached [2]. The major difficulty of this task
-is to extract semantic information from the story context and use it to determine the correct ending.
+In the LSDSem 2017 competition, in which different teams competed to solve the story cloze task, validation accuracies between 0.595 and 0.752 were reached [2]. The major difficulty of this task is to extract semantic information from the story context and use it to determine the correct ending.
 
+
+ Our ﬁnal model relies on a combination of features derived from word and sentence embeddings, as well as from predicted sentence embeddings from a generative RNN. The features are fed into a logistic regression model to perform the classiﬁcation. The ﬁnal implementation was able to reach a validation accuracy of 71% which is near the state-of-the art solutions sores.
+
+
+The following datasets were provided:
+
+Training sets:
+* the frist consisted of the context sentences with the correct ending only: [train](/data/train_stories.csv)
+* the second included an additional incorrect ending to the correct one: [validation 1](/data/cloze_test_spring2016-test.csv)
+
+Evaluation set:
+* an evaluation set [validation 2](/data/cloze_test_val__spring2016_cloze_test_ALL_val.csv) with context sentences and labeled endings to determine the accuracy of the classifier
+
+Test set
+* a test set [test](/data/test_nlu18_utf-8.csv) to participate in the competition by classifying unlabeled sentences
+
+
+
+Sources:
 
 [1] Nasrin Mostafazadeh et al. A corpus and cloze evaluation for deeper understanding commonsense
 stories. 2016.
@@ -38,5 +47,3 @@ stories. 2016.
 * **Mauro Luzzatto** - [Maurol](https://github.com/MauroLuzzatto)
 * **Dario Kneubuehler** - [Darkneu](https://github.com/Darkneu)
 * **Thomas Brunschwiler**
-
-Date: 30.05.2018
