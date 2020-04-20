@@ -7,7 +7,7 @@ The target of this NLP project was to successfully solve the story cloze task. T
 In the LSDSem 2017 competition, in which different teams competed to solve the story cloze task, validation accuracies between 0.595 and 0.752 were reached [2]. The major difficulty of this task is to extract semantic information from the story context and use it to determine the correct ending.
 
 
- Our ﬁnal model relies on a combination of features derived from word and sentence embeddings, as well as from predicted sentence embeddings from a generative RNN. The features are fed into a logistic regression model to perform the classiﬁcation. The ﬁnal implementation was able to reach a validation accuracy of 71% which is near the state-of-the art solutions sores.
+ Our ﬁnal model relies on a combination of features derived from word and sentence embeddings, as well as from predicted sentence embeddings from a generative RNN. The features are fed into a logistic regression model to perform the classiﬁcation. The ﬁnal implementation was able to reach a validation accuracy of 71% which is near the state-of-the art solutions scores [4].
 
 
 The following datasets were provided:
@@ -32,6 +32,8 @@ stories. 2016.
 [2] Nasrin Mostafazadeh et al. Lsdsem 2017 shared task: The story cloze test. 2017.
 
 [3] [Story Cloze Test and ROCStories Corpora Description](http://cs.rochester.edu/nlp/rocstories/)
+
+[4] [Final project report ](/Report/20180608 - Final Project Report.pdf)
 
 
 ## Getting Started
