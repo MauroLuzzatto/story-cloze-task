@@ -6,7 +6,9 @@
 [![Github All Releases](https://img.shields.io/github/downloads/MauroLuzzatto/Natural-Language-Understanding--Story-Cloze-Task/total.svg)]()
 
 [![Downloads](https://pepy.tech/badge/video2tfrecord)](https://pepy.tech/project/video2tfrecord)
-
+<!-- https://img.shields.io/github/stars/MauroLuzzatto/Natural-Language-Understanding--Story-Cloze-Task
+ -->
+ [![GitHub stars](https://img.shields.io/github/stars/MauroLuzzatto/Natural-Language-Understanding--Story-Cloze-Task)](https://github.com/MauroLuzzatto/Natural-Language-Understanding--Story-Cloze-Task/stargazers)
 <!-- [![Build Status](https://travis.ibm.com/Mauro-Luzzatto/-Data-Modelling.svg?token=zmafNzx54WQZmTrFgEaV&branch=master)](https://travis.ibm.com/Mauro-Luzzatto/-Data-Modelling)
 
  -->
