@@ -2,7 +2,8 @@
 ![Python](https://img.shields.io/badge/python-v3.6+-blue.svg)
 [![GitHub stars](https://img.shields.io/github/stars/MauroLuzzatto/Natural-Language-Understanding--Story-Cloze-Task?color=green)](https://github.com/MauroLuzzatto/Natural-Language-Understanding--Story-Cloze-Task/stargazers)
 <!-- ![GitHub All Releases](https://img.shields.io/github/downloads/MauroLuzzatto/Natural-Language-Understanding--Story-Cloze-Task/total)
- --># Solving the Story Clozed Task
+ -->
+ # Solving the Story Clozed Task
 
 <!-- [![Build Status](https://travis.ibm.com/Mauro-Luzzatto/-Data-Modelling.svg?token=zmafNzx54WQZmTrFgEaV&branch=master)](https://travis.ibm.com/Mauro-Luzzatto/-Data-Modelling)
  -->
