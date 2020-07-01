@@ -1,6 +1,12 @@
 
 # Solving the Story Clozed Task
-(Date: 30.05.2018)
+
+![Python](https://img.shields.io/badge/python-v3.6+-blue.svg)
+[![Total Downloads](https://poser.pugx.org/phpunit/phpunit/downloads)](//packagist.org/packages/phpunit/phpunit)
+<!-- [![Build Status](https://travis.ibm.com/Mauro-Luzzatto/-Data-Modelling.svg?token=zmafNzx54WQZmTrFgEaV&branch=master)](https://travis.ibm.com/Mauro-Luzzatto/-Data-Modelling)
+
+ -->
+
 
 The target of this NLP project was to successfully solve the story cloze task. This task was developed to measure advanced commonsense understanding within everyday written stories [1]. To solve the task, one has to determine the correct ending sentence out of two available options, given the four initial context sentences of the story. 
 
@@ -22,6 +28,7 @@ Evaluation set:
 Test set
 * a test set [test](/data/test_nlu18_utf-8.csv) to participate in the competition by classifying unlabeled sentences
 
+(Date: 30.05.2018)
 
 
 Sources:
