@@ -3,8 +3,9 @@
 
 ![Python](https://img.shields.io/badge/python-v3.6+-blue.svg)
 <!-- [![Total Downloads](https://poser.pugx.org/phpunit/phpunit/downloads)](//https://github.com/MauroLuzzatto/Natural-Language-Understanding--Story-Cloze-Task) -->
-
 [![Github All Releases](https://img.shields.io/github/downloads/MauroLuzzatto/Natural-Language-Understanding--Story-Cloze-Task/total.svg)]()
+
+[![Downloads](https://pepy.tech/badge/video2tfrecord)](https://pepy.tech/project/video2tfrecord)
 
 <!-- [![Build Status](https://travis.ibm.com/Mauro-Luzzatto/-Data-Modelling.svg?token=zmafNzx54WQZmTrFgEaV&branch=master)](https://travis.ibm.com/Mauro-Luzzatto/-Data-Modelling)
 
@@ -21,14 +22,14 @@ In the LSDSem 2017 competition, in which different teams competed to solve the s
 
 The following datasets were provided:
 
-Training sets:
+### Training sets:
 * the frist consisted of the context sentences with the correct ending only: [train](/data/train_stories.csv)
 * the second included an additional incorrect ending to the correct one: [validation 1](/data/cloze_test_spring2016-test.csv)
 
-Evaluation set:
+### Evaluation set:
 * an evaluation set [validation 2](/data/cloze_test_val__spring2016_cloze_test_ALL_val.csv) with context sentences and labeled endings to determine the accuracy of the classifier
 
-Test set
+### Test set
 * a test set [test](/data/test_nlu18_utf-8.csv) to participate in the competition by classifying unlabeled sentences
 
 (Date: 30.05.2018)
