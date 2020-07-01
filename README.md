@@ -1,8 +1,7 @@
 
-# Solving the Story Clozed Task
-
 ![Python](https://img.shields.io/badge/python-v3.6+-blue.svg)
 [![GitHub stars](https://img.shields.io/github/stars/MauroLuzzatto/Natural-Language-Understanding--Story-Cloze-Task)](https://img.shields.io/github/stars/MauroLuzzatto/Natural-Language-Understanding--Story-Cloze-Task?color=green)
+# Solving the Story Clozed Task
 
 <!-- [![Build Status](https://travis.ibm.com/Mauro-Luzzatto/-Data-Modelling.svg?token=zmafNzx54WQZmTrFgEaV&branch=master)](https://travis.ibm.com/Mauro-Luzzatto/-Data-Modelling)
  -->
@@ -24,30 +23,27 @@ In the LSDSem 2017 competition, in which different teams competed to solve the s
 
 The following datasets were provided:
 
-### Training sets:
+### Training Set
 * the frist consisted of the context sentences with the correct ending only: [train](/data/train_stories.csv)
 * the second included an additional incorrect ending to the correct one: [validation 1](/data/cloze_test_spring2016-test.csv)
 
-### Evaluation set:
+### Evaluation Set
 * an evaluation set [validation 2](/data/cloze_test_val__spring2016_cloze_test_ALL_val.csv) with context sentences and labeled endings to determine the accuracy of the classifier
 
-### Test set
+### Test Set
 * a test set [test](/data/test_nlu18_utf-8.csv) to participate in the competition by classifying unlabeled sentences
 
-(Date: 30.05.2018)
 
 
-Sources:
-
+### Sources:
 [1] Nasrin Mostafazadeh et al. A corpus and cloze evaluation for deeper understanding commonsense
 stories. 2016.
-
 [2] Nasrin Mostafazadeh et al. Lsdsem 2017 shared task: The story cloze test. 2017.
-
 [3] [Story Cloze Test and ROCStories Corpora Description](http://cs.rochester.edu/nlp/rocstories/)
-
 [4] [Final Project Report](/Report/20180608%20-%20Final%20Project%20Report.pdf)
 
+
+(Date: 30.05.2018)
 
 ## Getting Started
 1. Install dependencies by running: `python3 setup.py install`
